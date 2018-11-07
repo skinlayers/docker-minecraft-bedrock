@@ -20,11 +20,6 @@ RUN set -eu && \
     apt clean && \
     rm -r /var/lib/apt/lists/*
 
-COPY server.properties /bedrock
-COPY whitelist.json /bedrock
-#COPY permissions.json /bedrock
-COPY ops.json /bedrock
-
 WORKDIR /bedrock
 
 EXPOSE 19132/udp \
