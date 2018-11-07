@@ -8,15 +8,12 @@ ARG BEDROCK_SERVER_ZIP_SHA256=02b9afcdc55a4c37f8ba6c6a9ae32d45aaebf0da06223f9ab1
 ARG BEDROCK_SERVER_ZIP_SHA256_FILE=${BEDROCK_SERVER_ZIP}.sha256
 
 RUN set -eu && \
-    apt update && apt -y install curl unzip && \
+    apt update && apt -y install unzip && \
     curl -L "$BEDROCK_SERVER_ZIP_URL" -o "$BEDROCK_SERVER_ZIP" && \
     echo "$BEDROCK_SERVER_ZIP_SHA256  $BEDROCK_SERVER_ZIP" > "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
     sha256sum -c "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
     unzip "$BEDROCK_SERVER_ZIP" -d bedrock && \
-    cp bedrock/server.properties "bedrock/server.properties-${BEDROCK_SERVER_VERSION}.unedited" && \
-    rm "$BEDROCK_SERVER_ZIP" "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
-    apt clean && \
-    rm -r /var/lib/apt/lists/*
+    cp bedrock/server.properties "bedrock/server.properties-${BEDROCK_SERVER_VERSION}.unedited"
 
 FROM ubuntu:bionic
 
