@@ -17,7 +17,7 @@ RUN set -eu && \
 
 FROM ubuntu:bionic
 
-COPY --from=builder /bedrock /
+COPY --from=builder /bedrock /bedrock
 
 WORKDIR /bedrock
 
