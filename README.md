@@ -35,12 +35,12 @@ Ctrl-q
 
 ## Customize server.properties
 ```
-docker cp minecraft-bedrock:/bedrock/server.properties .
+docker cp minecraft-bedrock:/minecraft/server.properties .
 ```
 
 Edit `server.properties` to taste.
-Copy your modified `server.properties` back, then restart the container.
+Copy your modified `server.properties` to the data volume, then restart the container.
 ```
-docker cp ./server.properties minecraft-bedrock:/bedrock/
+docker cp ./server.properties minecraft-bedrock:/data/
 docker restart minecraft-bedrock
 ```

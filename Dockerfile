@@ -1,4 +1,4 @@
-FROM buildpack-deps:bionic-curl as builder
+FROM buildpack-deps:bionic-curl
 
 ARG BEDROCK_SERVER_VERSION=1.7.0.13
 ARG BEDROCK_SERVER_ZIP=bedrock-server-${BEDROCK_SERVER_VERSION}.zip
@@ -12,20 +12,26 @@ RUN set -eu && \
     curl -L "$BEDROCK_SERVER_ZIP_URL" -o "$BEDROCK_SERVER_ZIP" && \
     echo "$BEDROCK_SERVER_ZIP_SHA256  $BEDROCK_SERVER_ZIP" > "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
     sha256sum -c "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
-    unzip "$BEDROCK_SERVER_ZIP" -d bedrock && \
-    cp bedrock/server.properties "bedrock/server.properties-${BEDROCK_SERVER_VERSION}.unedited"
+    unzip -q "$BEDROCK_SERVER_ZIP" -d minecraft && \
+    rm "$BEDROCK_SERVER_ZIP" "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
 
-FROM buildpack-deps:bionic-curl
+WORKDIR /data
 
-COPY --from=builder /bedrock /bedrock
+RUN cp -r /minecraft/behavior_packs /data && \
+    cp -r /minecraft/definitions /data && \
+    cp -r /minecraft/resource_packs /data && \
+    cp -r /minecraft/structures /data && \
+    cp /minecraft/server.properties /data && \
+    touch ops.json && \
+    touch whitelist.json
 
-WORKDIR /bedrock
-
-ENV LD_LIBRARY_PATH=/bedrock
+ENV LD_LIBRARY_PATH=/minecraft
 
 EXPOSE 19132/udp \
        19132
 
-VOLUME ["/bedrock"]
+VOLUME ["/data"]
 
-CMD ["./bedrock_server"]
+CMD ["/minecraft/bedrock_server"]
