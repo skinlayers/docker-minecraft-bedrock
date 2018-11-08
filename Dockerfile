@@ -15,7 +15,7 @@ RUN set -eu && \
     unzip "$BEDROCK_SERVER_ZIP" -d bedrock && \
     cp bedrock/server.properties "bedrock/server.properties-${BEDROCK_SERVER_VERSION}.unedited"
 
-FROM ubuntu:bionic
+FROM buildpack-deps:bionic-curl
 
 COPY --from=builder /bedrock /bedrock
 
