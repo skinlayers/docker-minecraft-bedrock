@@ -15,7 +15,7 @@ docker run \
     --restart unless-stopped \
     --publish 19132:19132/udp \
     --publish 19132:19132 \
-    --volume minecraft-bedrock:/bedrock \
+    --volume minecraft-bedrock:/data \
     minecraft-bedrock-server:1.7.0.13
 ```
 
