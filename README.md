@@ -5,7 +5,7 @@ https://minecraft.net/en-us/download/server/bedrock/
 
 ## Build
 ```
-docker build -t minecraft-bedrock-server:1.7.0.13 .
+docker build -t minecraft-bedrock-server .
 ```
 
 ## Run
