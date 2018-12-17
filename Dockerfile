@@ -8,6 +8,8 @@ ARG BEDROCK_SERVER_ZIP_SHA256=1b28de35f35e3024bab93547ccfcc6723b62ff930d0f0cc1b7
 ARG BEDROCK_SERVER_ZIP_SHA256_FILE=${BEDROCK_SERVER_ZIP}.sha256
 
 RUN set -eu && \
+    groupadd -r -g 999 minecraft && \
+    useradd --no-log-init -r -u 999 -g minecraft -d /data minecraft && \
     apt update && apt -y install unzip && \
     curl -L "$BEDROCK_SERVER_ZIP_URL" -o "$BEDROCK_SERVER_ZIP" && \
     echo "$BEDROCK_SERVER_ZIP_SHA256  $BEDROCK_SERVER_ZIP" > "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
@@ -24,12 +26,15 @@ RUN cp -r /minecraft/behavior_packs /data && \
     cp -r /minecraft/resource_packs /data && \
     cp -r /minecraft/structures /data && \
     cp /minecraft/server.properties /data && \
-    touch ops.json
-
-ENV LD_LIBRARY_PATH=/minecraft
+    touch /data/ops.json && \
+    chown -R minecraft:minecraft /data
 
 EXPOSE 19132/udp \
        19132
+
+USER minecraft
+
+ENV LD_LIBRARY_PATH=/minecraft
 
 VOLUME ["/data"]
 
