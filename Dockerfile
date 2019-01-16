@@ -19,15 +19,15 @@ RUN set -eu && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
+COPY ./docker-entrypoint.sh /
+
 WORKDIR /data
 
-RUN cp -r /minecraft/behavior_packs /data && \
-    cp -r /minecraft/definitions /data && \
-    cp -r /minecraft/resource_packs /data && \
-    cp -r /minecraft/structures /data && \
-    cp /minecraft/server.properties /data && \
-    touch /data/ops.json && \
-    chown -R minecraft:minecraft /data
+RUN cp /minecraft/server.properties . && \
+    cp /minecraft/whitelist.json . && \
+    touch ops.json && \
+    chown -R minecraft:minecraft /data && \
+    chmod +x /docker-entrypoint.sh
 
 EXPOSE 19132/udp \
        19132
@@ -38,4 +38,5 @@ ENV LD_LIBRARY_PATH=/minecraft
 
 VOLUME ["/data"]
 
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["/minecraft/bedrock_server"]
