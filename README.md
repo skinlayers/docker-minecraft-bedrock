@@ -89,25 +89,25 @@ Ctrl-q
 
 ### OPs
 You can use https://mcuuid.net/ to find a player's UUID.
-ops.json example:
+permissions.json example:
 ```
 [
   {
-    "uuid": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-    "name": "SomeXBoxLiveHandle",
-    "level": 4,
-    "bypassesPlayerLimit": false
+    "permission": "operator",
+    "xuid": "XXXXXXXXXXXXXXXX"
   },
   {
-    "uuid": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-    "name": "AnotherXBoxLiveHandle",
-    "level": 4,
-    "bypassesPlayerLimit": false
+    "permission": "member",
+    "xuid": "YYYYYYYYYYYYYYYY"
+  },
+  {
+    "permission": "visitor",
+    "xuid": "ZZZZZZZZZZZZZZZZ"
   }
 ]
 ```
 
 ```
-docker cp ops.json minecraft-bedrock:/data/
+docker cp permissions.json minecraft-bedrock:/data/
 docker restart minecraft-bedrock
 ```
