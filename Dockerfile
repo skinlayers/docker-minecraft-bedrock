@@ -25,7 +25,7 @@ WORKDIR /data
 
 RUN cp /minecraft/server.properties . && \
     cp /minecraft/whitelist.json . && \
-    touch ops.json && \
+    echo '[]' > permissions.json && \
     chown -R minecraft:minecraft /data && \
     chmod +x /docker-entrypoint.sh
 
