@@ -29,8 +29,7 @@ RUN cp /minecraft/server.properties . && \
     chown -R minecraft:minecraft /data && \
     chmod +x /docker-entrypoint.sh
 
-EXPOSE 19132/udp \
-       19132
+EXPOSE 19132/udp
 
 USER minecraft
 
