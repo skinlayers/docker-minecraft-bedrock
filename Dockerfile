@@ -15,6 +15,7 @@ RUN set -eu && \
     echo "$BEDROCK_SERVER_ZIP_SHA256  $BEDROCK_SERVER_ZIP" > "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
     sha256sum -c "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
     unzip -q "$BEDROCK_SERVER_ZIP" -d minecraft && \
+    chmod +x /minecraft/bedrock_server && \
     rm "$BEDROCK_SERVER_ZIP" "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
