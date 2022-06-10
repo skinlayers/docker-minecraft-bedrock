@@ -1,10 +1,10 @@
 FROM buildpack-deps:focal-curl
 
-ARG BEDROCK_SERVER_VERSION=1.18.32.02
+ARG BEDROCK_SERVER_VERSION=1.19.1.01
 ARG BEDROCK_SERVER_ZIP=bedrock-server-${BEDROCK_SERVER_VERSION}.zip
 ARG BEDROCK_SERVER_ZIP_URL=https://minecraft.azureedge.net/bin-linux/${BEDROCK_SERVER_ZIP}
 
-ARG BEDROCK_SERVER_ZIP_SHA256=ae9ee512a96835c625e989d728ad3af940d4f71816b447190de08dceca313def
+ARG BEDROCK_SERVER_ZIP_SHA256=33d453db28934c1f377ffbcf74a6bd63dffda6bfdb2135e559306c2ebb17cc8c
 ARG BEDROCK_SERVER_ZIP_SHA256_FILE=${BEDROCK_SERVER_ZIP}.sha256
 
 RUN set -eu && \
@@ -25,7 +25,7 @@ COPY ./docker-entrypoint.sh /
 WORKDIR /data
 
 RUN cp /minecraft/server.properties . && \
-    #cp /minecraft/whitelist.json . && \
+    #cp /minecraft/allowlist.json . && \
     echo '[]' > permissions.json && \
     chown -R minecraft:minecraft /data && \
     chmod +x /docker-entrypoint.sh

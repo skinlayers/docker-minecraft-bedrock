@@ -35,7 +35,7 @@ Example:
 ```
 docker attach minecraft-bedrock
 help 15
-whitelist add your-minecraft-username
+allowlist add your-minecraft-username
 ```
 
 ### Detach from console
@@ -63,7 +63,7 @@ docker restart minecraft-bedrock
 ```
 
 ### Whitelist
-whitelist.json example:
+allowlist.json example:
 ```
 [
   {
@@ -80,9 +80,9 @@ whitelist.json example:
 ```
 
 ```
-docker cp whitelist.json minecraft-bedrock:/data/
+docker cp allowlist.json minecraft-bedrock:/data/
 docker attach minecraft-bedrock
-whitelist reload
+allowlist reload
 Ctrl-p
 Ctrl-q
 ```
