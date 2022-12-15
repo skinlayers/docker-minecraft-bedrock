@@ -1,0 +1,24 @@
+################################################################
+# Global configuration
+################################################################
+log_level  = "debug"
+log_format = "text"
+
+################################################################
+# Resource configuration
+################################################################
+[[resource]]
+name = "minecraft"
+
+  [[resource.template]]
+    src  = "/etc/remco/templates/server.properties.tmpl"
+    dst  = "/data/server.properties"
+    mode = "0644"
+    UID  = 999
+    GID  = 999
+
+  [resource.backend]
+    [resource.backend.env]
+      prefix  = "/bedrock"
+      keys    = ["/"]
+      onetime = true

@@ -17,15 +17,9 @@ for dir in /minecraft/*/; do
 done
 
 # Clean up old/broken symlinks and empty directories
-#for subdir in /data/*/*; do
-#    if [ -L "$subdir" ]; then
-#        if ! [ -e "$subdir" ]; then
-#            rm "$subdir"
-#        fi
-#    fi
-#done
 find /data/ -xtype l -delete
 find /data/ -empty -type d -delete
 
+/bin/remco
 
 exec "$@"
