@@ -39,6 +39,7 @@ RUN cp /minecraft/allowlist.json . && \
     cp /minecraft/permissions.json . && \
     cp /minecraft/server.properties . && \
     mkdir -p /etc/remco/templates && \
+    # Generate server.properties.tmpl that can be templated at runtime by remco with environment variable values.
     sed -r -e '/^#/! s|^(.+)=(.*)|\1={{ getv("/\1", "\2") }}|g' /minecraft/server.properties -e ':a' -e '/^#/! s|(^.+=)([^,]*)-|\1\2/|;t a' > /etc/remco/templates/server.properties.tmpl && \
     chown -R minecraft:minecraft /data && \
     chmod +x /docker-entrypoint.sh
