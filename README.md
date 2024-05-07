@@ -1,5 +1,5 @@
 # docker-minecraft-bedrock
-The latest official Minecraft Bedrock Edition server (alpha) running on an Ubuntu 18.04 Docker image.
+The latest official Minecraft Bedrock Edition server (alpha) running on an Ubuntu 22.04 Docker image.
 
 https://minecraft.net/en-us/download/server/bedrock/
 
