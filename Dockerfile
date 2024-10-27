@@ -1,10 +1,10 @@
 FROM buildpack-deps:jammy-curl
 
-ARG BEDROCK_SERVER_VERSION=1.21.20.03
+ARG BEDROCK_SERVER_VERSION=1.21.43.01
 ARG BEDROCK_SERVER_ZIP=bedrock-server-${BEDROCK_SERVER_VERSION}.zip
-ARG BEDROCK_SERVER_ZIP_URL=https://minecraft.azureedge.net/bin-linux/${BEDROCK_SERVER_ZIP}
+ARG BEDROCK_SERVER_ZIP_URL=https://www.minecraft.net/bedrockdedicatedserver/bin-linux/${BEDROCK_SERVER_ZIP}
 
-ARG BEDROCK_SERVER_ZIP_SHA256=bef26b40342fb06147a5a37fa51724c5a8eca77052094fa26562fd771dba53d5
+ARG BEDROCK_SERVER_ZIP_SHA256=b6fa0479f3a6a381078b3092b9ec546c59293f27c06b8b8403927a642f99b6a8
 ARG BEDROCK_SERVER_ZIP_SHA256_FILE=${BEDROCK_SERVER_ZIP}.sha256
 
 ARG REMCO_VER=0.12.4
@@ -17,7 +17,7 @@ RUN useradd --no-log-init -r -u 999 -g minecraft -d /data minecraft
 
 RUN set -eu && \
     apt update && apt -y install unzip && \
-    curl -L "$BEDROCK_SERVER_ZIP_URL" -o "$BEDROCK_SERVER_ZIP" && \
+    curl -H "User-Agent:" -L "$BEDROCK_SERVER_ZIP_URL" -o "$BEDROCK_SERVER_ZIP" && \
     echo "$BEDROCK_SERVER_ZIP_SHA256  $BEDROCK_SERVER_ZIP" > "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
     sha256sum -c "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
     unzip -q "$BEDROCK_SERVER_ZIP" -d minecraft && \
