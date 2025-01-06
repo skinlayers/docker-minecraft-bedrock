@@ -1,10 +1,11 @@
-FROM buildpack-deps:jammy-curl
+FROM buildpack-deps:noble-curl
 
-ARG BEDROCK_SERVER_VERSION=1.21.43.01
+ARG BEDROCK_SERVER_VERSION=1.21.51.02
 ARG BEDROCK_SERVER_ZIP=bedrock-server-${BEDROCK_SERVER_VERSION}.zip
 ARG BEDROCK_SERVER_ZIP_URL=https://www.minecraft.net/bedrockdedicatedserver/bin-linux/${BEDROCK_SERVER_ZIP}
+ARG CURL_USER_AGENT='User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)'
 
-ARG BEDROCK_SERVER_ZIP_SHA256=b6fa0479f3a6a381078b3092b9ec546c59293f27c06b8b8403927a642f99b6a8
+ARG BEDROCK_SERVER_ZIP_SHA256=ac259d3c75b8c1d55a7a1e0e4f0dd1399afb9bbdd85d4b0d0c8b98723634b213
 ARG BEDROCK_SERVER_ZIP_SHA256_FILE=${BEDROCK_SERVER_ZIP}.sha256
 
 ARG REMCO_VER=0.12.4
@@ -17,7 +18,7 @@ RUN useradd --no-log-init -r -u 999 -g minecraft -d /data minecraft
 
 RUN set -eu && \
     apt update && apt -y install unzip && \
-    curl -H "User-Agent:" -L "$BEDROCK_SERVER_ZIP_URL" -o "$BEDROCK_SERVER_ZIP" && \
+    curl -H "$CURL_USER_AGENT" -L "$BEDROCK_SERVER_ZIP_URL" -o "$BEDROCK_SERVER_ZIP" && \
     echo "$BEDROCK_SERVER_ZIP_SHA256  $BEDROCK_SERVER_ZIP" > "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
     sha256sum -c "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
     unzip -q "$BEDROCK_SERVER_ZIP" -d minecraft && \
