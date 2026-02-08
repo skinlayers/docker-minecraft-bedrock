@@ -46,14 +46,12 @@ RUN cp /minecraft/allowlist.json . && \
     sed -r \
         -e 's/^# ?([a-z][-a-z0-9]*=\S*$)/\1/' \
         -e '/^#/! s|^(.+)=(.*)|\1={{ getv("/\1", "\2") }}|g' \
-        -e ':a' -e '/^#/! s|(^.+=)([^,]*)-|\1\2/|;t a' \
         /minecraft/server.properties > /etc/remco/templates/server.properties.tmpl && \
     # Generate example.env with all supported environment variables and their default values.
     sed -n -r \
-        -e 's/^([a-z][-a-z0-9]*)=(.*)/BEDROCK_\U\1\E=\2/p; t' \
-        -e 's/^# ?([a-z][-a-z0-9]*)=(\S*)$/BEDROCK_\U\1\E=\2/p' \
+        -e 's/^([a-z][-a-z0-9]*)=(.*)/bedrock_\1=\2/p; t' \
+        -e 's/^# ?([a-z][-a-z0-9]*)=(\S*)$/bedrock_\1=\2/p' \
         /minecraft/server.properties | \
-    sed -r ':a; s/^(BEDROCK_[^=]*)-/\1_/; ta' | \
     sed 's/^/#/' > /minecraft/example.env && \
     chown -R minecraft:minecraft /data && \
     chmod +x /docker-entrypoint.sh

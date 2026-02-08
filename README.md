@@ -50,7 +50,7 @@ The data files are copied to the `minecraft-bedrock-data` volume mounted at `/da
 ### server.properties
 See https://minecraft.gamepedia.com/Server.properties#Bedrock_Edition
 
-Server properties are configured via environment variables at container startup using [remco](https://github.com/HeavyHorst/remco). Each property maps to an environment variable with the `BEDROCK_` prefix, uppercase name, and hyphens replaced by underscores. For example, `server-name` becomes `BEDROCK_SERVER_NAME`.
+Server properties are configured via environment variables at container startup using [remco](https://github.com/HeavyHorst/remco). Each property maps to an environment variable with the `bedrock_` prefix. The original property name is preserved as-is. For example, `server-name` becomes `bedrock_server-name`.
 
 Extract the generated example env file to see all supported options and their defaults:
 ```
@@ -74,9 +74,9 @@ docker run \
 Individual variables can also be set directly:
 ```
 docker run ... \
-    --env BEDROCK_SERVER_NAME="My Server" \
-    --env BEDROCK_DIFFICULTY=hard \
-    --env BEDROCK_ALLOW_LIST=true \
+    --env bedrock_server-name="My Server" \
+    --env bedrock_difficulty=hard \
+    --env bedrock_allow-list=true \
     minecraft-bedrock-server
 ```
 
