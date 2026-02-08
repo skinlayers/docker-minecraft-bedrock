@@ -48,7 +48,7 @@ Ctrl-q
 The data files are copied to the `minecraft-bedrock-data` volume mounted at `/data`, while the originals are stored along with the executable at `/minecraft` in the base container. 
 
 ### server.properties
-See https://minecraft.gamepedia.com/Server.properties#Bedrock_Edition_3
+See https://minecraft.gamepedia.com/Server.properties#Bedrock_Edition
 
 Server properties are configured via environment variables at container startup using [remco](https://github.com/HeavyHorst/remco). Each property maps to an environment variable with the `BEDROCK_` prefix, uppercase name, and hyphens replaced by underscores. For example, `server-name` becomes `BEDROCK_SERVER_NAME`.
 
