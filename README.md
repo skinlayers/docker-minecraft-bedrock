@@ -1,5 +1,5 @@
 # docker-minecraft-bedrock
-The latest official Minecraft Bedrock Edition server (alpha) running on an Ubuntu 22.04 Docker image.
+The latest official Minecraft Bedrock Edition server (alpha) running on an Ubuntu 24.04 Docker image.
 
 https://minecraft.net/en-us/download/server/bedrock/
 
@@ -50,14 +50,40 @@ The data files are copied to the `minecraft-bedrock-data` volume mounted at `/da
 ### server.properties
 See https://minecraft.gamepedia.com/Server.properties#Bedrock_Edition_3
 
-Copy the unmodified `server.properties` from the container to the Docker host.
+Server properties are configured via environment variables at container startup using [remco](https://github.com/HeavyHorst/remco). Each property maps to an environment variable with the `BEDROCK_` prefix, uppercase name, and hyphens replaced by underscores. For example, `server-name` becomes `BEDROCK_SERVER_NAME`.
+
+Extract the generated example env file to see all supported options and their defaults:
 ```
-docker cp minecraft-bedrock:/minecraft/server.properties .
+docker run --rm minecraft-bedrock-server cat /minecraft/example.env > example.env
 ```
 
-Edit `server.properties` to taste.
-Copy your modified `server.properties` to the data volume, then restart the container.
+Uncomment and modify the options you want, then pass the file at runtime:
 ```
+docker run \
+    --name minecraft-bedrock \
+    --interactive \
+    --tty \
+    --detach \
+    --restart unless-stopped \
+    --publish 19132:19132/udp \
+    --volume minecraft-bedrock-data:/data \
+    --env-file example.env \
+    minecraft-bedrock-server
+```
+
+Individual variables can also be set directly:
+```
+docker run ... \
+    --env BEDROCK_SERVER_NAME="My Server" \
+    --env BEDROCK_DIFFICULTY=hard \
+    --env BEDROCK_ALLOW_LIST=true \
+    minecraft-bedrock-server
+```
+
+Alternatively, you can bypass the templating and edit `server.properties` directly in the data volume:
+```
+docker cp minecraft-bedrock:/minecraft/server.properties .
+# edit server.properties
 docker cp ./server.properties minecraft-bedrock:/data/
 docker restart minecraft-bedrock
 ```
