@@ -37,7 +37,7 @@ RUN mkdir -p /etc/remco/templates && \
         -e 's/^([a-z][-a-z0-9]*)=(.*)/BEDROCK_\U\1\E=\2/p; t' \
         -e 's/^# ?([a-z][-a-z0-9]*)=(\S*)$/BEDROCK_\U\1\E=\2/p' \
         /minecraft_files/server.properties | \
-    sed -r -e ':l; s/^(BEDROCK_[A-Z0-9_]*)-/\1_/; t l' -e 's/^/#/' \
+    sed -r -e ':l; s/^(BEDROCK_[A-Z0-9_]*)-/\1_/; t l' -e "s/=(.*[[:space:]].*)/='\1'/" -e 's/^/#/' \
         > /minecraft_files/example-server.properties.env
 
 # --- Stage 2: Runtime ---
