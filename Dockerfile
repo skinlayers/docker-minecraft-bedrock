@@ -56,7 +56,7 @@ COPY --from=builder --chown=minecraft:minecraft /tmp/remco /bin/remco
 COPY --from=builder --chown=minecraft:minecraft /minecraft_files /minecraft
 COPY --from=builder /etc/remco/templates /etc/remco/templates
 COPY --chown=minecraft:minecraft remco/config /etc/remco/config
-COPY --chown=minecraft:minecraft example-permissions.env example-allowlist.env /minecraft/
+COPY --chown=minecraft:minecraft examples/example-permissions.env examples/example-allowlist.env /minecraft/
 COPY --chown=minecraft:minecraft docker-entrypoint.sh /
 
 WORKDIR /data
