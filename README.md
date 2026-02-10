@@ -49,19 +49,24 @@ docker attach minecraft-bedrock
 
 Properties are configured via environment variables with the `bedrock_` prefix using [remco](https://github.com/HeavyHorst/remco).
 
-* **Example:** To change `server-name`, set `bedrock_server-name=MyServer`.
-* **Generate Template:** ```bash
-docker run --rm minecraft-bedrock-server cat /minecraft/example.env > server.properties.env
+* **Example:** To change `server-name`, set `bedrock_server_name=MyServer`.
+* **Generate template:**
 
-```
+  ```bash
+  docker run --rm minecraft-bedrock-server cat /minecraft/example-server.properties.env > server.properties.env
+  ```
 
-### Permissions (Roles)
+### Permissions
 
-Instead of individual variables, manage players by roles. The entrypoint parses these comma-separated lists into `permissions.json`.
+The entrypoint generates `permissions.json` from role-based environment variables. Each role accepts a comma-separated list of XUIDs.
 
-**Supported Roles:** `operators`, `members`, `visitors`
+**Supported roles:** `operators`, `members`, `visitors`
 
 ```bash
+# Extract the example env file
+docker run --rm minecraft-bedrock-server cat /minecraft/example-permissions.env > permissions.env
+
+# Or set directly
 docker run -d ... \
     -e operators=1234567890123456,2234567890123457 \
     -e members=3234567890123458 \
@@ -70,9 +75,13 @@ docker run -d ... \
 
 ### Allowlist
 
-The allowlist uses the format `allowlist_<name>=<xuid>[,ignoresPlayerLimit]`.
+The entrypoint generates `allowlist.json` from environment variables with the format `allowlist_<name>=<xuid>[,ignoresPlayerLimit]`.
 
 ```bash
+# Extract the example env file
+docker run --rm minecraft-bedrock-server cat /minecraft/example-allowlist.env > allowlist.env
+
+# Or set directly
 docker run -d ... \
     -e allowlist_SomePlayer=1234567890123456,true \
     -e allowlist_AnotherPlayer=2234567890123457 \

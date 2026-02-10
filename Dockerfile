@@ -29,7 +29,16 @@ RUN mkdir -p /etc/remco/templates && \
     sed -r \
         -e 's/^# ?([a-z][-a-z0-9]*=\S*$)/\1/' \
         -e '/^#/! s|^(.+)=(.*)|\1={{ getv("/\1", "\2") }}|g' \
-        /minecraft_files/server.properties > /etc/remco/templates/server.properties.tmpl
+        /minecraft_files/server.properties | \
+    sed -r ':l; s|(getv\("/[^"]*)-|\1/|; t l' \
+        > /etc/remco/templates/server.properties.tmpl && \
+    # Generate example-server.properties.env from server.properties
+    sed -n -r \
+        -e 's/^([a-z][-a-z0-9]*)=(.*)/bedrock_\1=\2/p; t' \
+        -e 's/^# ?([a-z][-a-z0-9]*)=(\S*)$/bedrock_\1=\2/p' \
+        /minecraft_files/server.properties | \
+    sed -r -e ':l; s/^(bedrock_[a-z0-9_]*)-/\1_/; t l' -e 's/^/#/' \
+        > /minecraft_files/example-server.properties.env
 
 # --- Stage 2: Runtime ---
 FROM ubuntu:noble
@@ -47,6 +56,7 @@ COPY --from=builder --chown=minecraft:minecraft /tmp/remco /bin/remco
 COPY --from=builder --chown=minecraft:minecraft /minecraft_files /minecraft
 COPY --from=builder /etc/remco/templates /etc/remco/templates
 COPY --chown=minecraft:minecraft remco/config /etc/remco/config
+COPY --chown=minecraft:minecraft example-permissions.env example-allowlist.env /minecraft/
 COPY --chown=minecraft:minecraft docker-entrypoint.sh /
 
 WORKDIR /data
