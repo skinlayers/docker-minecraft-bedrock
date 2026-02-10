@@ -1,69 +1,61 @@
-FROM buildpack-deps:noble-curl
+# --- Stage 1: Builder ---
+FROM buildpack-deps:noble-curl AS builder
 
 ARG BEDROCK_SERVER_VERSION=1.21.132.3
 ARG BEDROCK_SERVER_ZIP=bedrock-server-${BEDROCK_SERVER_VERSION}.zip
 ARG BEDROCK_SERVER_ZIP_URL=https://www.minecraft.net/bedrockdedicatedserver/bin-linux/${BEDROCK_SERVER_ZIP}
-ARG CURL_USER_AGENT='User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)'
-
 ARG BEDROCK_SERVER_ZIP_SHA256=07ca4ccf404dfdda02870d47b4a60301a298298018a031989a8c7ef8482d958d
-ARG BEDROCK_SERVER_ZIP_SHA256_FILE=${BEDROCK_SERVER_ZIP}.sha256
+ARG CURL_USER_AGENT='User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)'
 
 ARG REMCO_VER=0.12.5
 ARG REMCO_ZIP=remco_${REMCO_VER}_linux_amd64.zip
 ARG REMCO_ZIP_URL=https://github.com/HeavyHorst/remco/releases/download/v${REMCO_VER}/${REMCO_ZIP}
 
+WORKDIR /tmp
 
-RUN groupadd -r -g 999 minecraft
-RUN useradd --no-log-init -r -u 999 -g minecraft -d /data minecraft
-
-RUN set -eu && \
-    apt update && apt -y install unzip && \
-    curl -H "$CURL_USER_AGENT" -L "$BEDROCK_SERVER_ZIP_URL" -o "$BEDROCK_SERVER_ZIP" && \
-    echo "$BEDROCK_SERVER_ZIP_SHA256  $BEDROCK_SERVER_ZIP" > "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
-    sha256sum -c "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
-    unzip -q "$BEDROCK_SERVER_ZIP" -d minecraft && \
-    chmod +x /minecraft/bedrock_server && \
-    rm "$BEDROCK_SERVER_ZIP" "$BEDROCK_SERVER_ZIP_SHA256_FILE" && \
-    apt clean && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN curl -L "$REMCO_ZIP_URL" -o "$REMCO_ZIP" && \
+RUN apt-get update && apt-get install -y unzip && \
+    curl -L "$REMCO_ZIP_URL" -o "$REMCO_ZIP" && \
     unzip "$REMCO_ZIP" && \
-    mv remco_linux /bin/remco && \
-    rm "$REMCO_ZIP"
+    mv remco_linux /tmp/remco && \
+    curl -H "$CURL_USER_AGENT" -L "$BEDROCK_SERVER_ZIP_URL" -o "$BEDROCK_SERVER_ZIP" && \
+    echo "$BEDROCK_SERVER_ZIP_SHA256  $BEDROCK_SERVER_ZIP" > server.sha256 && \
+    sha256sum -c server.sha256 && \
+    # Unzip to a clean folder and REMOVE the zip immediately
+    mkdir /minecraft_files && \
+    unzip -q "$BEDROCK_SERVER_ZIP" -d /minecraft_files && \
+    rm "$BEDROCK_SERVER_ZIP"
 
-COPY docker-entrypoint.sh /
-
-WORKDIR /data
-
-RUN cp /minecraft/allowlist.json . && \
-    cp /minecraft/permissions.json . && \
-    cp /minecraft/server.properties . && \
-    mkdir -p /etc/remco/templates && \
-    # Generate server.properties.tmpl that can be templated at runtime by remco with environment variable values.
-    # First expression uncomments commented-out properties so they can also be configured via env vars.
-    # Only matches if the value has no spaces (to exclude descriptive comment lines).
+RUN mkdir -p /etc/remco/templates && \
     sed -r \
         -e 's/^# ?([a-z][-a-z0-9]*=\S*$)/\1/' \
         -e '/^#/! s|^(.+)=(.*)|\1={{ getv("/\1", "\2") }}|g' \
-        /minecraft/server.properties > /etc/remco/templates/server.properties.tmpl && \
-    # Generate example.env with all supported environment variables and their default values.
-    sed -n -r \
-        -e 's/^([a-z][-a-z0-9]*)=(.*)/bedrock_\1=\2/p; t' \
-        -e 's/^# ?([a-z][-a-z0-9]*)=(\S*)$/bedrock_\1=\2/p' \
-        /minecraft/server.properties | \
-    sed 's/^/#/' > /minecraft/example.env && \
-    chown -R minecraft:minecraft /data && \
-    chmod +x /docker-entrypoint.sh
+        /minecraft_files/server.properties > /etc/remco/templates/server.properties.tmpl
 
-COPY remco/config /etc/remco/config
+# --- Stage 2: Runtime ---
+FROM ubuntu:noble
 
-EXPOSE 19132/udp
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcurl4 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -r -g 999 minecraft && \
+    useradd --no-log-init -r -u 999 -g minecraft -d /data minecraft
+
+# USE --chown to set permissions during the copy (Prevents layer bloat)
+COPY --from=builder --chown=minecraft:minecraft /tmp/remco /bin/remco
+COPY --from=builder --chown=minecraft:minecraft /minecraft_files /minecraft
+COPY --from=builder /etc/remco/templates /etc/remco/templates
+COPY --chown=minecraft:minecraft remco/config /etc/remco/config
+COPY --chown=minecraft:minecraft docker-entrypoint.sh /
+
+WORKDIR /data
+# Only chown the /data volume directory, not the /minecraft engine files
+RUN chown minecraft:minecraft /data && chmod +x /docker-entrypoint.sh
 
 USER minecraft
-
 ENV LD_LIBRARY_PATH=/minecraft
-
+EXPOSE 19132/udp
 VOLUME ["/data"]
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

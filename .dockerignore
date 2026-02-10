@@ -1,3 +1,6 @@
 *.tgz
 *.zip
 backups
+bedrock-server/
+scripts/
+.claude/

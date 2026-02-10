@@ -1,139 +1,102 @@
 # docker-minecraft-bedrock
-The latest official Minecraft Bedrock Edition server (alpha) running on an Ubuntu 24.04 Docker image.
 
-https://minecraft.net/en-us/download/server/bedrock/
+The latest official Minecraft Bedrock Edition server (alpha) running on a lightweight, multi-stage Ubuntu 24.04 Docker image.
+
+## Features
+
+* **Optimized Size:** Multi-stage build (~120MB content size).
+* **Non-Root Execution:** Server runs under a dedicated `minecraft` user for better security.
+* **Dynamic Configuration:** Manage `server.properties` via environment variables.
+* **Role-Based Access:** Simplified permissions management using grouped roles.
 
 ## Build
-```
-docker build -t minecraft-bedrock-server .
+
+```bash
+# Fetch latest version and SHA from Mojang, then build
+./scripts/build-latest.sh
+
 ```
 
 ## Run
-Long version:
-```
-docker run \
+
+```bash
+docker run -d \
     --name minecraft-bedrock \
-    --interactive \
-    --tty \
-    --detach \
+    -it \
+    -p 19132:19132/udp \
+    -v minecraft-bedrock-data:/data \
     --restart unless-stopped \
-    --publish 19132:19132/udp \
-    --publish 19132:19132 \
-    --volume minecraft-bedrock-data:/data \
+    --env-file server.properties.env \
+    --env-file allowlist.env \
+    --env-file permissions.env \
     minecraft-bedrock-server
+
 ```
 
-One-liner:
-```
-docker run --name minecraft-bedrock -itd --restart unless-stopped -p 19132:19132/udp -p 19132:19132 -v minecraft-bedrock-data:/data minecraft-bedrock-server
-```
+### Console Access
 
-### Run console commands
-See https://minecraft.gamepedia.com/Commands#Summary_of_commands
-Type `help` followed by 1-15 to see the available console commands.
-Example:
-```
+To run commands (e.g., `op <player>`, `stop`, `list`):
+
+```bash
 docker attach minecraft-bedrock
-help 15
-allowlist add your-minecraft-username
+# Detach with: Ctrl+P, Ctrl+Q
+
 ```
 
-### Detach from console
-```
-Ctrl-p
-Ctrl-q
-```
-
-## Customize
-The data files are copied to the `minecraft-bedrock-data` volume mounted at `/data`, while the originals are stored along with the executable at `/minecraft` in the base container. 
+## Configuration
 
 ### server.properties
-See https://minecraft.gamepedia.com/Server.properties#Bedrock_Edition
 
-Server properties are configured via environment variables at container startup using [remco](https://github.com/HeavyHorst/remco). Each property maps to an environment variable with the `bedrock_` prefix. The original property name is preserved as-is. For example, `server-name` becomes `bedrock_server-name`.
+Properties are configured via environment variables with the `bedrock_` prefix using [remco](https://github.com/HeavyHorst/remco).
 
-Extract the generated example env file to see all supported options and their defaults:
-```
-docker run --rm minecraft-bedrock-server cat /minecraft/example.env > example.env
+* **Example:** To change `server-name`, set `bedrock_server-name=MyServer`.
+* **Generate Template:** ```bash
+docker run --rm minecraft-bedrock-server cat /minecraft/example.env > server.properties.env
+
 ```
 
-Uncomment and modify the options you want, then pass the file at runtime:
-```
-docker run \
-    --name minecraft-bedrock \
-    --interactive \
-    --tty \
-    --detach \
-    --restart unless-stopped \
-    --publish 19132:19132/udp \
-    --volume minecraft-bedrock-data:/data \
-    --env-file example.env \
+### Permissions (Roles)
+
+Instead of individual variables, manage players by roles. The entrypoint parses these comma-separated lists into `permissions.json`.
+
+**Supported Roles:** `operators`, `members`, `visitors`
+
+```bash
+docker run -d ... \
+    -e operators=1234567890123456,2234567890123457 \
+    -e members=3234567890123458 \
     minecraft-bedrock-server
 ```
 
-Individual variables can also be set directly:
-```
-docker run ... \
-    --env bedrock_server-name="My Server" \
-    --env bedrock_difficulty=hard \
-    --env bedrock_allow-list=true \
+### Allowlist
+
+The allowlist uses the format `allowlist_<name>=<xuid>[,ignoresPlayerLimit]`.
+
+```bash
+docker run -d ... \
+    -e allowlist_SomePlayer=1234567890123456,true \
+    -e allowlist_AnotherPlayer=2234567890123457 \
     minecraft-bedrock-server
 ```
 
-Alternatively, you can bypass the templating and edit `server.properties` directly in the data volume:
-```
-docker cp minecraft-bedrock:/minecraft/server.properties .
-# edit server.properties
-docker cp ./server.properties minecraft-bedrock:/data/
-docker restart minecraft-bedrock
-```
+## Technical Details
 
-### Whitelist
-allowlist.json example:
-```
-[
-  {
-    "ignoresPlayerLimit": false,
-    "name": "SomeXBoxLiveHandle",
-    "xuid": "XXXXXXXXXXXXXXXX"
-  },
-  {
-    "ignoresPlayerLimit": false,
-    "name": "AnotherXBoxLiveHandle",
-    "xuid": "XXXXXXXXXXXXXXXX"
-  }
-]
-```
+### Image Architecture
 
-```
-docker cp allowlist.json minecraft-bedrock:/data/
-docker attach minecraft-bedrock
-allowlist reload
-Ctrl-p
-Ctrl-q
-```
+The image uses a multi-stage build to separate build-time dependencies from the runtime environment.
 
-### OPs
-You can use https://mcuuid.net/ to find a player's UUID.
-permissions.json example:
-```
-[
-  {
-    "permission": "operator",
-    "xuid": "XXXXXXXXXXXXXXXX"
-  },
-  {
-    "permission": "member",
-    "xuid": "YYYYYYYYYYYYYYYY"
-  },
-  {
-    "permission": "visitor",
-    "xuid": "ZZZZZZZZZZZZZZZZ"
-  }
-]
-```
+* **Stage 1 (Builder):** Uses `buildpack-deps:noble-curl` to download, verify (SHA256), and extract the server files. It generates the `remco` templates and strips `~100MB` of debug symbols.
+* **Stage 2 (Runtime):** Uses `ubuntu:noble`. It contains only the extracted server, `remco`, and essential libraries (`libcurl4`).
 
-```
-docker cp permissions.json minecraft-bedrock:/data/
-docker restart minecraft-bedrock
+### Data Persistence
+
+The `/data` volume stores your world, logs, and generated JSON files. At startup, the container symlinks engine-critical folders (like `definitions` and `resource_packs`) from the read-only `/minecraft` directory into `/data` to ensure the server has everything it needs while keeping your volume clean.
+
+### Looking up XUIDs
+
+You can translate an Xbox Live gamertag to an XUID using the [PlayerDB](https://playerdb.co/) API:
+
+```bash
+curl -s "https://playerdb.co/api/player/xbox/<gamertag>" | jq '.data.player.id'
+
 ```
