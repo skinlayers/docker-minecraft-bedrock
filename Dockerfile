@@ -34,10 +34,10 @@ RUN mkdir -p /etc/remco/templates && \
         > /etc/remco/templates/server.properties.tmpl && \
     # Generate example-server.properties.env from server.properties
     sed -n -r \
-        -e 's/^([a-z][-a-z0-9]*)=(.*)/bedrock_\1=\2/p; t' \
-        -e 's/^# ?([a-z][-a-z0-9]*)=(\S*)$/bedrock_\1=\2/p' \
+        -e 's/^([a-z][-a-z0-9]*)=(.*)/BEDROCK_\U\1\E=\2/p; t' \
+        -e 's/^# ?([a-z][-a-z0-9]*)=(\S*)$/BEDROCK_\U\1\E=\2/p' \
         /minecraft_files/server.properties | \
-    sed -r -e ':l; s/^(bedrock_[a-z0-9_]*)-/\1_/; t l' -e 's/^/#/' \
+    sed -r -e ':l; s/^(BEDROCK_[A-Z0-9_]*)-/\1_/; t l' -e 's/^/#/' \
         > /minecraft_files/example-server.properties.env
 
 # --- Stage 2: Runtime ---

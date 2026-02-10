@@ -47,9 +47,9 @@ docker attach minecraft-bedrock
 
 ### server.properties
 
-Properties are configured via environment variables with the `bedrock_` prefix using [remco](https://github.com/HeavyHorst/remco).
+Properties are configured via environment variables with the `BEDROCK_` prefix using [remco](https://github.com/HeavyHorst/remco). Env var names must be uppercase — remco lowercases them internally.
 
-* **Example:** To change `server-name`, set `bedrock_server_name=MyServer`.
+* **Example:** To change `server-name`, set `BEDROCK_SERVER_NAME=MyServer`.
 * **Generate template:**
 
   ```bash
@@ -60,7 +60,7 @@ Properties are configured via environment variables with the `bedrock_` prefix u
 
 The entrypoint generates `permissions.json` from role-based environment variables. Each role accepts a comma-separated list of XUIDs.
 
-**Supported roles:** `operators`, `members`, `visitors`
+**Supported roles:** `BEDROCK_OPERATORS`, `BEDROCK_MEMBERS`, `BEDROCK_VISITORS`
 
 ```bash
 # Extract the example env file
@@ -68,14 +68,14 @@ docker run --rm minecraft-bedrock-server cat /minecraft/example-permissions.env 
 
 # Or set directly
 docker run -d ... \
-    -e operators=1234567890123456,2234567890123457 \
-    -e members=3234567890123458 \
+    -e BEDROCK_OPERATORS=1234567890123456,2234567890123457 \
+    -e BEDROCK_MEMBERS=3234567890123458 \
     minecraft-bedrock-server
 ```
 
 ### Allowlist
 
-The entrypoint generates `allowlist.json` from environment variables with the format `allowlist_<name>=<xuid>[,ignoresPlayerLimit]`.
+The entrypoint generates `allowlist.json` from environment variables with the format `BEDROCK_ALLOWLIST_<name>=<xuid>[,ignoresPlayerLimit]`.
 
 ```bash
 # Extract the example env file
@@ -83,8 +83,8 @@ docker run --rm minecraft-bedrock-server cat /minecraft/example-allowlist.env > 
 
 # Or set directly
 docker run -d ... \
-    -e allowlist_SomePlayer=1234567890123456,true \
-    -e allowlist_AnotherPlayer=2234567890123457 \
+    -e BEDROCK_ALLOWLIST_SomePlayer=1234567890123456,true \
+    -e BEDROCK_ALLOWLIST_AnotherPlayer=2234567890123457 \
     minecraft-bedrock-server
 ```
 

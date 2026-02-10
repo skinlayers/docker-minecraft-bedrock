@@ -26,21 +26,21 @@ else
 fi
 
 # 3. Generate permissions.json from roles
-# Expected format: operators=123,456
-if env | grep -qE '^(operators|members|visitors)='; then
+# Expected format: BEDROCK_OPERATORS=123,456
+if env | grep -qE '^BEDROCK_(OPERATORS|MEMBERS|VISITORS)='; then
     echo "Generating permissions.json from environment roles..."
     {
         printf '[\n'
         first_entry=true
-        
-        for role in operators members visitors; do
-            # Use indirect expansion to get value of variable named by $role
+
+        for role in BEDROCK_OPERATORS BEDROCK_MEMBERS BEDROCK_VISITORS; do
             list="${!role}"
-            # Map 'operators' -> 'operator', etc.
-            role_name="${role%s}"
+            # Map 'BEDROCK_OPERATORS' -> 'operator', etc.
+            role_name="${role#BEDROCK_}"
+            role_name="${role_name,,}"
+            role_name="${role_name%s}"
 
             if [ -n "$list" ]; then
-                # Split comma-separated string into array
                 IFS=',' read -ra xuids <<< "$list"
                 for xuid in "${xuids[@]}"; do
                     if [ -n "$xuid" ]; then
@@ -55,34 +55,30 @@ if env | grep -qE '^(operators|members|visitors)='; then
     } > /data/permissions.json
 fi
 
-# 4. Generate allowlist.json using the helper function
-# Format: allowlist_PlayerName=XUID[,ignoresPlayerLimit]
-generate_allowlist() {
-    if env | grep -q "^allowlist_"; then
-        echo "Generating allowlist.json..."
-        {
-            printf '[\n'
-            local first=true
-            while IFS='=' read -r key value; do
-                [[ $key != allowlist_* ]] && continue
-                [ -z "$value" ] && continue
+# 4. Generate allowlist.json
+# Format: BEDROCK_ALLOWLIST_PlayerName=XUID[,ignoresPlayerLimit]
+if env | grep -q "^BEDROCK_ALLOWLIST_"; then
+    echo "Generating allowlist.json..."
+    {
+        printf '[\n'
+        first=true
+        while IFS='=' read -r key value; do
+            [[ $key != BEDROCK_ALLOWLIST_* ]] && continue
+            [ -z "$value" ] && continue
 
-                $first || printf ',\n'
-                first=false
+            $first || printf ',\n'
+            first=false
 
-                local name="${key#allowlist_}"
-                local xuid="${value%%,*}"
-                local ignores="false"
-                [[ "$value" == *,* ]] && ignores="${value##*,}"
-                
-                printf '  { "ignoresPlayerLimit": %s, "name": "%s", "xuid": "%s" }' "$ignores" "$name" "$xuid"
-            done < <(env)
-            printf '\n]\n'
-        } > /data/allowlist.json
-    fi
-}
+            name="${key#BEDROCK_ALLOWLIST_}"
+            xuid="${value%%,*}"
+            ignores="false"
+            [[ "$value" == *,* ]] && ignores="${value##*,}"
 
-generate_allowlist
+            printf '  { "ignoresPlayerLimit": %s, "name": "%s", "xuid": "%s" }' "$ignores" "$name" "$xuid"
+        done < <(env)
+        printf '\n]\n'
+    } > /data/allowlist.json
+fi
 
 # 5. Final Handover
 echo "Starting Bedrock Server..."
