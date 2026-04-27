@@ -7,7 +7,7 @@ ARG BEDROCK_SERVER_ZIP_URL=https://www.minecraft.net/bedrockdedicatedserver/bin-
 ARG BEDROCK_SERVER_ZIP_SHA256=07ca4ccf404dfdda02870d47b4a60301a298298018a031989a8c7ef8482d958d
 ARG CURL_USER_AGENT='User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)'
 
-ARG REMCO_VER=0.12.5
+ARG REMCO_VER=0.12.6
 ARG REMCO_ZIP=remco_${REMCO_VER}_linux_amd64.zip
 ARG REMCO_ZIP_URL=https://github.com/HeavyHorst/remco/releases/download/v${REMCO_VER}/${REMCO_ZIP}
 
